@@ -19,3 +19,8 @@ const Route = use('Route')
 Route.get('/', () => {
   return { greeting: 'Hello world in JSON' }
 })
+
+Route.group(
+  () => { Route.resource('director', 'DirectorController').apiOnly() }
+).prefix('api/v1')
+
