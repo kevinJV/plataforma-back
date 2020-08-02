@@ -12,6 +12,11 @@ class Recruiter extends Model {
     candidate(){
         return this.hasMany('App/Models/Candidate')
     }
+
+    permissionsType(){
+        return this.hasMany('App/Models/PermissionType')
+            .pivotTable('permissions')
+    }
 }
 
 module.exports = Recruiter
