@@ -7,6 +7,11 @@ class Coach extends Model {
     director(){
         return this.belongsTo('App/Models/Director')
     }
+
+    recruiter(){
+        return this.belongsToMany('App/Models/Recruiter')
+            .pivotTable('coach_recruiter')
+    }
 }
 
 module.exports = Coach

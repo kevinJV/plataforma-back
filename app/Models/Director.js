@@ -5,7 +5,7 @@ const Model = use('Model')
 
 class Director extends Model {
     coach(){
-        return this.hasOne('App/Models/Coach')
+        return this.hasMany('App/Models/Coach')
     }
 }
 
