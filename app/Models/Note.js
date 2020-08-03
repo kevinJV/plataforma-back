@@ -5,7 +5,7 @@ const Model = use('Model')
 
 class Note extends Model {
     candidate(){
-        return this.belongsTo('App/Model/Candidate')
+        return this.belongsTo('App/Models/Candidate')
     }
 }
 
