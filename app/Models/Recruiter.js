@@ -14,8 +14,8 @@ class Recruiter extends Model {
         return this.hasMany('App/Models/Candidate')
     }
 
-    permissionTypes(){
-        return this.hasMany('App/Models/PermissionType')
+    permissions(){
+        return this.belongsToMany('App/Models/Permission')
             .pivotTable('permissions')
     }
 }

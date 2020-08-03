@@ -26,5 +26,8 @@ Route.group(() => {
   Route.resource('recruiters', 'RecruiterController').apiOnly() 
   Route.resource('candidates', 'CandidateController').apiOnly() 
   Route.resource('jobs', 'JobController').apiOnly() 
+
+  Route.post('permissions', 'PermissionController.store')
+  Route.delete('permissions/:id', 'PermissionController.destroy')
 }).prefix('api/v1')
 

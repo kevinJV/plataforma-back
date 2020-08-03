@@ -4,10 +4,6 @@
 const Model = use('Model')
 
 class PermissionType extends Model {
-    recruiters(){
-        return this.belongsToMany('App/Models/Recruiter')
-            .pivotTable('permissions')
-    }
 }
 
 module.exports = PermissionType
