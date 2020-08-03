@@ -20,7 +20,9 @@ Route.get('/', () => {
   return { greeting: 'Hello world in JSON' }
 })
 
-Route.group(
-  () => { Route.resource('director', 'DirectorController').apiOnly() }
-).prefix('api/v1')
+Route.group(() => { 
+  Route.resource('director', 'DirectorController').apiOnly() 
+  Route.resource('coach', 'CoachController').apiOnly() 
+  Route.resource('recruiter', 'RecruiterController').apiOnly() 
+}).prefix('api/v1')
 
