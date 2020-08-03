@@ -8,15 +8,15 @@ class Candidate extends Model {
         return this.belongsTo('App/Models/Recruiter')
     }
 
-    job(){
+    jobs(){
         return this.hasMany('App/Model/Job')
     }
 
-    log(){
+    logs(){
         return this.hasMany('App/Model/Log')
     }
 
-    note(){
+    notes(){
         return this.hasMany('App/Model/Note')
     }
 }

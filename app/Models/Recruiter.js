@@ -4,16 +4,17 @@
 const Model = use('Model')
 
 class Recruiter extends Model {
-    coach(){
+    coaches(){
         return this.belongsToMany('App/Models/Coach')
             .pivotTable('coach_recruiter')
+            .withTimestamps()
     }
 
-    candidate(){
+    candidates(){
         return this.hasMany('App/Models/Candidate')
     }
 
-    permissionsType(){
+    permissionTypes(){
         return this.hasMany('App/Models/PermissionType')
             .pivotTable('permissions')
     }

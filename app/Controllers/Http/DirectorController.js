@@ -117,7 +117,7 @@ class DirectorController {
 
       if(director === null){
         return response.status(404).json({
-          message: 'The director you tried to edit doesn\'t exit',          
+          message: 'The director you tried to edit doesn\'t exist',          
         })
       }
 
@@ -156,7 +156,7 @@ class DirectorController {
 
       if(director === null){
         return response.status(404).json({
-          message: 'The director you tried to delete doesn\'t exit',          
+          message: 'The director you tried to delete doesn\'t exist',          
         })
       }
 

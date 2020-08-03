@@ -4,7 +4,7 @@
 const Model = use('Model')
 
 class PermissionType extends Model {
-    recruiter(){
+    recruiters(){
         return this.belongsToMany('App/Model/Recruiter')
             .pivotTable('permissions')
     }

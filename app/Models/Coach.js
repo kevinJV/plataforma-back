@@ -8,9 +8,10 @@ class Coach extends Model {
         return this.belongsTo('App/Models/Director')
     }
 
-    recruiter(){
+    recruiters(){
         return this.belongsToMany('App/Models/Recruiter')
             .pivotTable('coach_recruiter')
+            .withTimestamps()
     }
 }
 
