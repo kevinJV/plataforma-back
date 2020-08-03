@@ -24,5 +24,6 @@ Route.group(() => {
   Route.resource('director', 'DirectorController').apiOnly() 
   Route.resource('coach', 'CoachController').apiOnly() 
   Route.resource('recruiter', 'RecruiterController').apiOnly() 
+  Route.resource('candidate', 'CandidateController').apiOnly() 
 }).prefix('api/v1')
 
