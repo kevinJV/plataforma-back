@@ -21,9 +21,10 @@ Route.get('/', () => {
 })
 
 Route.group(() => { 
-  Route.resource('director', 'DirectorController').apiOnly() 
-  Route.resource('coach', 'CoachController').apiOnly() 
-  Route.resource('recruiter', 'RecruiterController').apiOnly() 
-  Route.resource('candidate', 'CandidateController').apiOnly() 
+  Route.resource('directors', 'DirectorController').apiOnly() 
+  Route.resource('coaches', 'CoachController').apiOnly() 
+  Route.resource('recruiters', 'RecruiterController').apiOnly() 
+  Route.resource('candidates', 'CandidateController').apiOnly() 
+  Route.resource('jobs', 'JobController').apiOnly() 
 }).prefix('api/v1')
 
