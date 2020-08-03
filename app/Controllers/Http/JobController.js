@@ -2,6 +2,8 @@
 const Recruiter = use('App/Models/Recruiter')
 const Candidate = use('App/Models/Candidate')
 const Job = use('App/Models/Job')
+const Permission = use('App/Models/Permission')
+const PermissionType = use('App/Models/PermissionType')
 
 /** @typedef {import('@adonisjs/framework/src/Request')} Request */
 /** @typedef {import('@adonisjs/framework/src/Response')} Response */
@@ -26,11 +28,22 @@ class JobController {
     try {
       //First lets find that recruiter
       const recruiter = await Recruiter.find(recruiter_id)
+      const permission_type_id = (await PermissionType.findBy('table_name', 'Jobs')).id //Find the permission id
       let jobs = {} 
 
       if(recruiter !== null){
         //Lets find that candidate
-        const candidate = await recruiter.candidates().where('id', candidate_id).first()
+        let candidate = await recruiter.candidates().where('id', candidate_id).first()
+
+        //If the recruiter doesn't have that candidate in his list, lets see if he has the permission
+        if(candidate === null){
+          const permission = await Permission.query().where('recruiter_id', recruiter_id).where('permission_type_id', permission_type_id).first()
+
+          if(permission !== null){
+            //Lets give him the permission
+            candidate = await Candidate.find(candidate_id)
+          }
+        }
 
         if(candidate !== null){
           jobs = await candidate.jobs().fetch()
@@ -67,10 +80,21 @@ class JobController {
     try {
       //Lets find if the recruiter_id exists
       const recruiter = await Recruiter.find(recruiter_id)
+      const permission_type_id = (await PermissionType.findBy('table_name', 'Jobs')).id //Find the permission id
 
       if(recruiter !== null){
         //Lets find now if the candidate exists
-        const candidate = await recruiter.candidates().where('id', candidate_id).first()
+        let candidate = await recruiter.candidates().where('id', candidate_id).first()
+
+        //If the recruiter doesn't have that candidate in his list, lets see if he has the permission
+        if(candidate === null){
+          const permission = await Permission.query().where('recruiter_id', recruiter_id).where('permission_type_id', permission_type_id).first()
+
+          if(permission !== null){
+            //Lets give him the permission
+            candidate = await Candidate.find(candidate_id)
+          }
+        }
 
         if(candidate !== null){
           //Now we can create the job
@@ -122,8 +146,20 @@ class JobController {
     let status = 200
 
     try {      
+      const permission_type_id = (await PermissionType.findBy('table_name', 'Jobs')).id //Find the permission id
+
       //Lets find if that recruiter has that candidate first
-      const candidate = await Candidate.query().where('id', candidate_id).where('recruiter_id', recruiter_id).first()
+      let candidate = await Candidate.query().where('id', candidate_id).where('recruiter_id', recruiter_id).first()
+
+      //If the recruiter doesn't have that candidate in his list, lets see if he has the permission
+      if(candidate === null){
+        const permission = await Permission.query().where('recruiter_id', recruiter_id).where('permission_type_id', permission_type_id).first()
+
+        if(permission !== null){
+          //Lets give him the permission
+          candidate = await Candidate.find(candidate_id)
+        }
+      }
       
       if(candidate !== null){
         //Now that we have the candidate, lets search that job
@@ -140,7 +176,6 @@ class JobController {
       }
 
     } catch (error) {
-      console.log(error)
       return response.status(500).json({
         message: 'Something went wrong when searching a job',
         error
@@ -171,8 +206,20 @@ class JobController {
     let status = 200
 
     try {
+      const permission_type_id = (await PermissionType.findBy('table_name', 'Jobs')).id //Find the permission id
+
       //Lets find if that recruiter has that candidate first
-      const candidate = await Candidate.query().where('id', candidate_id).where('recruiter_id', recruiter_id).first()
+      let candidate = await Candidate.query().where('id', candidate_id).where('recruiter_id', recruiter_id).first()
+
+      //If the recruiter doesn't have that candidate in his list, lets see if he has the permission
+      if(candidate === null){
+        const permission = await Permission.query().where('recruiter_id', recruiter_id).where('permission_type_id', permission_type_id).first()
+
+        if(permission !== null){
+          //Lets give him the permission
+          candidate = await Candidate.find(candidate_id)
+        }
+      }
       
       if(candidate !== null){
         //Now that we have the candidate, lets search that job
@@ -194,7 +241,6 @@ class JobController {
       }
 
     } catch (error) {
-      console.log(error)
       return response.status(500).json({
         message: 'Something went wrong when updating a job',
         error
@@ -224,8 +270,20 @@ class JobController {
     let status = 200
 
     try {
+      const permission_type_id = (await PermissionType.findBy('table_name', 'Jobs')).id //Find the permission id
+
       //Lets find if that recruiter has that candidate first
-      const candidate = await Candidate.query().where('id', candidate_id).where('recruiter_id', recruiter_id).first()
+      let candidate = await Candidate.query().where('id', candidate_id).where('recruiter_id', recruiter_id).first()
+
+      //If the recruiter doesn't have that candidate in his list, lets see if he has the permission
+      if(candidate === null){
+        const permission = await Permission.query().where('recruiter_id', recruiter_id).where('permission_type_id', permission_type_id).first()
+
+        if(permission !== null){
+          //Lets give him the permission
+          candidate = await Candidate.find(candidate_id)
+        }
+      }
 
       if(candidate !== null){
         //Now that we have the candidate, lets search that job

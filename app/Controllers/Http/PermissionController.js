@@ -73,7 +73,6 @@ class PermissionController {
       }
 
     } catch (error) {
-      console.log(error)
       return response.status(500).json({
         message: 'The permission could not be created',
         error
