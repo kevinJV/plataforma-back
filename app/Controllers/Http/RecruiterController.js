@@ -28,13 +28,13 @@ class RecruiterController {
       //Find the coach
       const coach = await Coach.find(coach_id) //There is findOrFail but I want a more concise message
 
-      if(coach === null){
-        throw 'The coach could not be found'
+      let recruiters = {}
+      //If found
+      if(coach !== null){
+        //Get its recruiters
+        recruiters = await coach.recruiters().fetch()      
       }
-      
-      //Get its recruiters
-      const recruiters = await coach.recruiters().fetch()
-      
+
       //We can only show his recruiters
       return response.type(200).json(recruiters)
 
@@ -66,7 +66,7 @@ class RecruiterController {
       let coach = await Coach.find(coach_id) //There is findOrFail but I want a more concise message
 
       if(coach === null){
-        throw 'The coach could not be found'
+        throw 'The coach could not be found, transaction rolledback'
       }
 
       //Create the recruiter
@@ -110,22 +110,25 @@ class RecruiterController {
     const { id } = params
 
     let recruiter = {}
-    let message = 'The recruiter was not found'
+    let message = 'The recruiter was found successfully'
+    let status = 200
 
     try {
       //Lets find the coach first
       const coach = await Coach.find(coach_id)
 
-      if(coach === null){
-        throw 'The coach could not be found'
-      }      
+      if(coach !== null){
+        //Now that we have the couch, we can search in its recruiters if the recruiter_id exists
+        recruiter = await coach.recruiters().where('recruiter_id', id).first() //doesn't scape the couch scope        
+  
+        if(recruiter === null){
+          message = 'The recruiter could not be found'
+          status = 404
+        }
 
-      //Now that we have the couch, we can search in its recruiters if the recruiter_id exists
-      recruiter = await coach.recruiters().where('recruiter_id', id).first()
-      //^ doesn't scape the couch scope
-
-      if(recruiter !== null){
-        message = 'The recruiter was found successfully'
+      }else{
+        message = 'The coach could not be found'
+        status = 404
       }
 
     } catch (error) {
@@ -135,7 +138,7 @@ class RecruiterController {
       })
     }
 
-    return response.status(200).json({
+    return response.status(status).json({
       message,
       recruiter
     })
@@ -154,25 +157,32 @@ class RecruiterController {
     const { name, coach_id } = request.only(['name', 'coach_id'])
 
     let recruiter = {}
+    let message = 'The recruiter was updated'
+    let status = 200
 
     try {
       //Lets find the coach first
       const coach = await Coach.find(coach_id)
 
-      if(coach === null){
-        throw 'The coach could not be found'
-      }      
+      if(coach !== null){
+        //Now that we have the couch, we can search in its recruiters if the recruiter_id exists
+        recruiter = await coach.recruiters().where('recruiter_id', id).first()
+  
+        if(recruiter !== null){
+          //Lets update the recruiter info now that everything is in order
+          recruiter.merge({ name })
+          await recruiter.save()
 
-      //Now that we have the couch, we can search in its recruiters if the recruiter_id exists
-      recruiter = await coach.recruiters().where('recruiter_id', id).first()
+        }else{
+          message = 'The recruit could not be found'
+          status = 404
+        }
 
-      if(recruiter === null){
-        throw 'The recruiter could not be found'
+      }else{
+        message = 'The coach could not be found'
+        status = 404
       }
 
-      //Lets update the recruiter info now that everything is in order
-      recruiter.merge({ name })
-      await recruiter.save()
     } catch (error) {
       return response.status(500).json({
         message: 'Something went wrong when updating a recruiter',
@@ -180,8 +190,8 @@ class RecruiterController {
       }) 
     }
 
-    return response.status(200).json({
-      message: 'The recruiter was updated',
+    return response.status(status).json({
+      message,
       recruiter
     })
   }
@@ -207,19 +217,19 @@ class RecruiterController {
       const coach = await Coach.find(coach_id)
 
       if(coach === null){
-        throw 'The coach could not be found'
+        throw 'The coach could not be found, transaction rolledback'
       }      
 
       //Now that we have the couch, we can search in its recruiters if the recruiter_id exists
       recruiter = await coach.recruiters().where('recruiter_id', id).first()
 
       if(recruiter === null){
-        throw 'The recruiter you tried to delete doesn\'t exists'
+        throw 'The recruiter you tried to delete doesn\'t exists, transaction rolledback'
       }
 
       //If everything is in order, lets delete that recruiter
-      await coach.recruiters().detach([recruiter.id])
-      await recruiter.delete()
+      await coach.recruiters().detach([recruiter.id], null, trx)
+      await recruiter.delete(trx)
 
       //Commit the transaction
       await trx.commit()

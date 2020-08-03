@@ -75,13 +75,15 @@ class DirectorController {
     const { id } = params
 
     let director = {}
-    let message = 'Director not found'
+    let message = 'The director was found successfully'
+    let status = 200
 
     try {      
       director = await Director.find(id)
       
-      if(director !== null){
-        message = 'The director was found successfully'
+      if(director === null){
+        message = 'The director was not found'
+        status = 404
       }
 
     } catch (error) {
@@ -91,7 +93,7 @@ class DirectorController {
       })  
     }
   
-    return response.status(200).send({
+    return response.status(status).send({
       message,
       director
     })
@@ -111,19 +113,20 @@ class DirectorController {
     const { name } = request.only(['name'])
 
     let director = {}
+    let message = 'The director was updated'
+    let status = 200
 
     try {
       director = await Director.find(id)
 
-      if(director === null){
-        return response.status(404).json({
-          message: 'The director you tried to edit doesn\'t exist',          
-        })
+      if(director !== null){        
+        director.merge({ name }) //Here we would pass all the atributes to update/change, trying not to iterate or do a 'objetct.attribute = '...
+        await director.save()
+
+      }else{
+        message = 'The director you tried to edit doesn\'t exist'
+        status = 404     
       }
-
-      director.merge({ name }) //Here we would pass all the atributes to update/change, trying not to iterate or do a 'objetct.attribute = '...
-
-      await director.save()
 
     } catch (error) {
       return response.status(500).json({
@@ -132,8 +135,8 @@ class DirectorController {
       }) 
     }
 
-    return response.status(200).send({
-      message: 'The director was updated',
+    return response.status(status).send({
+      message,
       director
     })
   }
@@ -150,17 +153,19 @@ class DirectorController {
     const { id } = params
 
     let director = {}
+    let message = 'The director was deleted'
+    let status = 200
 
     try {
       director = await Director.find(id)
 
-      if(director === null){
-        return response.status(404).json({
-          message: 'The director you tried to delete doesn\'t exist',          
-        })
+      if(director !== null){
+        await director.delete()
+        
+      }else{
+        message = 'The director you tried to delete doesn\'t exists'
+        status = 404
       }
-
-      await director.delete()
 
     } catch (error) {
       return response.status(500).json({
@@ -169,8 +174,8 @@ class DirectorController {
       }) 
     }
 
-    return response.status(200).send({
-      message: 'The director was deleted',
+    return response.status(status).send({
+      message,
       director
     })
   }
