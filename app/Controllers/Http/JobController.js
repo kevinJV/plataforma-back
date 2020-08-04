@@ -15,21 +15,20 @@ const PermissionType = use('App/Models/PermissionType')
 class JobController {
   /**
    * Show a list of all jobs.
-   * GET jobs
+   * GET candidates/:candidate_id/jobs
    *
    * @param {object} ctx
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    * @param {View} ctx.view
    */
-  async index ({ request, response, view }) {
-    const { recruiter_id, candidate_id } = request.only(['recruiter_id', 'candidate_id'])
+  async index ({ auth, params, request, response, view }) {
+    const { candidate_id } = params
+    const recruiter = await ( await auth.getUser() ).recruiter().first()
+    const permission_type_id = (await PermissionType.findBy('table_name', 'Jobs')).id
 
     try {
-      //First lets find that recruiter
-      const recruiter = await Recruiter.find(recruiter_id)
-      const permission_type_id = (await PermissionType.findBy('table_name', 'Jobs')).id //Find the permission id
-      let jobs = {} 
+      let jobs = []
 
       if(recruiter !== null){
         //Lets find that candidate
@@ -37,7 +36,10 @@ class JobController {
 
         //If the recruiter doesn't have that candidate in his list, lets see if he has the permission
         if(candidate === null){
-          const permission = await Permission.query().where('recruiter_id', recruiter_id).where('permission_type_id', permission_type_id).first()
+          //Only works if you (RECRUITER) have the exact PERMISSION in this CANDIDATE
+          const permission = await Permission.query()
+            .where('recruiter_id', recruiter.id).where('permission_type_id', permission_type_id).where('candidate_id', candidate_id)
+            .first()
 
           if(permission !== null){
             //Lets give him the permission
@@ -63,32 +65,33 @@ class JobController {
 
   /**
    * Create/save a new job.
-   * POST jobs
+   * POST candidates/:candidate_id/jobs
    *
    * @param {object} ctx
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async store ({ request, response }) {
-    const { title, description, recruiter_id, candidate_id } = 
-      request.only(['recruiter_id', 'candidate_id', 'title', 'description'])
+  async store ({ auth, params, request, response }) {
+    const { candidate_id } = params
+    const { title, description } = request.only(['title', 'description'])
+    const recruiter = await ( await auth.getUser() ).recruiter().first()
+    const permission_type_id = (await PermissionType.findBy('table_name', 'Jobs')).id //Find the permission id
 
     let job = {}
     let message = 'The job was created successfully'
     let status = 201
 
     try {
-      //Lets find if the recruiter_id exists
-      const recruiter = await Recruiter.find(recruiter_id)
-      const permission_type_id = (await PermissionType.findBy('table_name', 'Jobs')).id //Find the permission id
-
       if(recruiter !== null){
         //Lets find now if the candidate exists
         let candidate = await recruiter.candidates().where('id', candidate_id).first()
 
         //If the recruiter doesn't have that candidate in his list, lets see if he has the permission
         if(candidate === null){
-          const permission = await Permission.query().where('recruiter_id', recruiter_id).where('permission_type_id', permission_type_id).first()
+          //Only works if you (RECRUITER) have the exact PERMISSION in this CANDIDATE
+          const permission = await Permission.query()
+            .where('recruiter_id', recruiter.id).where('permission_type_id', permission_type_id).where('candidate_id', candidate_id)
+            .first()
 
           if(permission !== null){
             //Lets give him the permission
@@ -102,7 +105,7 @@ class JobController {
             title,
             description,
             candidate_id,
-            recruiter_id
+            recruiter_id: recruiter.id
           })
 
         }else{
@@ -130,30 +133,32 @@ class JobController {
 
   /**
    * Display a single job.
-   * GET jobs/:id
+   * GET candidates/:candidate_id/jobs/:id
    *
    * @param {object} ctx
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    * @param {View} ctx.view
    */
-  async show ({ params, request, response, view }) {
-    const { recruiter_id, candidate_id } = request.only(['recruiter_id', 'candidate_id'])
-    const { id } = params
+  async show ({ auth, params, request, response, view }) {
+    const { candidate_id, id } = params
+    const recruiter = await ( await auth.getUser() ).recruiter().first()
+    const permission_type_id = (await PermissionType.findBy('table_name', 'Jobs')).id //Find the permission id
 
     let job = {}
     let message = 'The job was found successfully'
     let status = 200
 
     try {      
-      const permission_type_id = (await PermissionType.findBy('table_name', 'Jobs')).id //Find the permission id
-
       //Lets find if that recruiter has that candidate first
-      let candidate = await Candidate.query().where('id', candidate_id).where('recruiter_id', recruiter_id).first()
+      let candidate = await recruiter.candidates().where('id', candidate_id).first()
 
       //If the recruiter doesn't have that candidate in his list, lets see if he has the permission
       if(candidate === null){
-        const permission = await Permission.query().where('recruiter_id', recruiter_id).where('permission_type_id', permission_type_id).first()
+        //Only works if you (RECRUITER) have the exact PERMISSION in this CANDIDATE
+        const permission = await Permission.query()
+          .where('recruiter_id', recruiter.id).where('permission_type_id', permission_type_id).where('candidate_id', candidate_id)
+          .first()
 
         if(permission !== null){
           //Lets give him the permission
@@ -190,30 +195,32 @@ class JobController {
 
   /**
    * Update job details.
-   * PUT or PATCH jobs/:id
+   * PUT or PATCH candidates/:candidate_id/jobs/:id
    *
    * @param {object} ctx
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async update ({ params, request, response }) {
-    const { title, description, recruiter_id, candidate_id } = 
-      request.only(['recruiter_id', 'candidate_id', 'title', 'description'])
-    const { id } = params
+  async update ({ auth, params, request, response }) {
+    const { candidate_id, id } = params
+    const { title, description } = request.only(['title', 'description'])
+    const recruiter = await ( await auth.getUser() ).recruiter().first()
+    const permission_type_id = (await PermissionType.findBy('table_name', 'Jobs')).id //Find the permission id
 
     let job = {}
     let message = 'The job was updated'
     let status = 200
 
     try {
-      const permission_type_id = (await PermissionType.findBy('table_name', 'Jobs')).id //Find the permission id
-
       //Lets find if that recruiter has that candidate first
-      let candidate = await Candidate.query().where('id', candidate_id).where('recruiter_id', recruiter_id).first()
+      let candidate = await recruiter.candidates().where('id', candidate_id).first()
 
       //If the recruiter doesn't have that candidate in his list, lets see if he has the permission
       if(candidate === null){
-        const permission = await Permission.query().where('recruiter_id', recruiter_id).where('permission_type_id', permission_type_id).first()
+        //Only works if you (RECRUITER) have the exact PERMISSION in this CANDIDATE
+        const permission = await Permission.query()
+          .where('recruiter_id', recruiter.id).where('permission_type_id', permission_type_id).where('candidate_id', candidate_id)
+          .first()
 
         if(permission !== null){
           //Lets give him the permission
@@ -261,23 +268,25 @@ class JobController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async destroy ({ params, request, response }) {
-    const { recruiter_id, candidate_id } = request.only(['recruiter_id', 'candidate_id'])
-    const { id } = params
+  async destroy ({ auth, params, request, response }) {
+    const { candidate_id, id } = params
+    const recruiter = await ( await auth.getUser() ).recruiter().first()
+    const permission_type_id = (await PermissionType.findBy('table_name', 'Jobs')).id //Find the permission id
 
     let job = {}
     let message = 'The job was deleted'
     let status = 200
 
     try {
-      const permission_type_id = (await PermissionType.findBy('table_name', 'Jobs')).id //Find the permission id
-
       //Lets find if that recruiter has that candidate first
-      let candidate = await Candidate.query().where('id', candidate_id).where('recruiter_id', recruiter_id).first()
+      let candidate = await recruiter.candidates().where('id', candidate_id).first()
 
       //If the recruiter doesn't have that candidate in his list, lets see if he has the permission
       if(candidate === null){
-        const permission = await Permission.query().where('recruiter_id', recruiter_id).where('permission_type_id', permission_type_id).first()
+        //Only works if you (RECRUITER) have the exact PERMISSION in this CANDIDATE
+        const permission = await Permission.query()
+          .where('recruiter_id', recruiter.id).where('permission_type_id', permission_type_id).where('candidate_id', candidate_id)
+          .first()
 
         if(permission !== null){
           //Lets give him the permission
