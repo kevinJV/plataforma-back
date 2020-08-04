@@ -21,7 +21,7 @@ Route.get('/', () => {
 })
 
 Route.group(() => { 
-  Route.resource('directors', 'DirectorController').apiOnly() 
+  Route.resource('directors', 'DirectorController').apiOnly().middleware(['auth', 'director']) 
   Route.resource('coaches', 'CoachController').apiOnly() 
   Route.resource('recruiters', 'RecruiterController').apiOnly() 
   Route.resource('candidates', 'CandidateController').apiOnly() 
