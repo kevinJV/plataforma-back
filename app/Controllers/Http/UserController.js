@@ -2,6 +2,8 @@
 
 const User = use('App/Models/User')
 const Role = use('App/Models/Role')
+const Director = use('App/Models/Director')
+const Database = use('Database');
 
 class UserController {
    /**
@@ -26,24 +28,63 @@ class UserController {
     let user = {};
     let message = 'The register was succesfully'
     let status = 200
+    let roleData = {}
 
+    //We are gonna need a transaction
+    const trx = await Database.beginTransaction()
     try {
         //Check if the role exists
         const role = await Role.find(role_id)
-        if(role !== null){
+
+        // if(role !== null){
+        if(role !== null && role.name == "Director"){
+            //Lets create the user
             user = await User.create({
                 username,
                 email,
                 password,
                 role_id
-            })
+            }, trx)
+
+            //Lets check which role account will be created
+            switch (role.name) {
+                case "Director":
+                    roleData = await Director.create({
+                        name: username
+                    }, trx)
+                    break;
+                /**
+                 * I didnt implemented these since they need extra info that it is just not avalaible in the conventional way
+                 * So I opted to only allow directors to be registered easily, is a coach o recruiter needs to be created
+                 * First a directors neeed to exists, then that director should create a coach and at the same time
+                 * that method will create a user
+                 */
+                // case "Coach":
+                //     console.log("Creare un coach")
+                //     break;
+                // case "Recruiter":
+                //     console.log("Creare un recruiter")
+                //     break;
+                default:
+                    throw "The role has yet to be implemented"
+            }
+
+            //Add the roleData createed
+            // user.role = roleData
+            user.director = roleData
+
         }else{
             message = 'The role could not be found'
             status = 404
         }
 
+        await trx.commit()
+
     }
     catch (error) {
+        console.log(error)
+        await trx.rollback()
+
         return response.status(500).json({
             message: 'Something went wrong when register a new user',
             error

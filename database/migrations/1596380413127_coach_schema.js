@@ -8,6 +8,7 @@ class CoachSchema extends Schema {
     this.create('coaches', (table) => {
       table.increments()
       table.string('name', 100)
+      table.integer('user_id').unsigned().references('id').inTable('users') //Which user he belongs to
       table.integer('director_id').unsigned().references('id').inTable('directors')
       table.timestamps()
     })

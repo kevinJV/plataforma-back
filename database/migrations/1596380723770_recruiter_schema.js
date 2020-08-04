@@ -8,6 +8,7 @@ class RecruiterSchema extends Schema {
     this.create('recruiters', (table) => {
       table.increments()
       table.string('name', 100)
+      table.integer('user_id').unsigned().references('id').inTable('users') //Which user he belongs to
       table.timestamps()
     })
   }
