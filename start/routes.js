@@ -29,5 +29,9 @@ Route.group(() => {
 
   Route.post('permissions', 'PermissionController.store')
   Route.delete('permissions/:id', 'PermissionController.destroy')
+
+  Route.post('register', 'UserController.register')
+  Route.post('login', 'UserController.login')
+  Route.get('roles', 'UserController.showRoles')
 }).prefix('api/v1')
 

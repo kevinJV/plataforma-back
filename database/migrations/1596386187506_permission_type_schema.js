@@ -11,7 +11,7 @@ class PermissionTypeSchema extends Schema {
       table.string('table_name')
     })
 
-    // copy data
+    // Set up default tables
     this.schedule(async (trx) => {
       await Database.table('permission_types').transacting(trx).insert([
         {table_name: 'Jobs'},
