@@ -18,6 +18,10 @@ class Recruiter extends Model {
         return this.belongsToMany('App/Models/Permission')
             .pivotTable('permissions')
     }
+
+    user(){
+        return this.belongsTo('App/Models/User')
+    }
 }
 
 module.exports = Recruiter

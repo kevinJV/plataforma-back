@@ -83,7 +83,6 @@ class UserController {
 
     }
     catch (error) {
-        console.log(error)
         await trx.rollback()
 
         return response.status(500).json({

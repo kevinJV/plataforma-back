@@ -13,6 +13,10 @@ class Coach extends Model {
             .pivotTable('coach_recruiter')
             .withTimestamps()
     }
+
+    user(){
+        return this.belongsTo('App/Models/User')
+    }
 }
 
 module.exports = Coach

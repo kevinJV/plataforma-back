@@ -7,6 +7,10 @@ class Director extends Model {
     coaches(){
         return this.hasMany('App/Models/Coach')
     }
+
+    user(){
+        return this.belongsTo('App/Models/User')
+    }
 }
 
 module.exports = Director

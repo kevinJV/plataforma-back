@@ -2,6 +2,10 @@
 
 const Coach = use('App/Models/Coach')
 const Director = use('App/Models/Director')
+const User = use('App/Models/User')
+const Role = use('App/Models/Role')
+
+const Database = use('Database');
 
 /** @typedef {import('@adonisjs/framework/src/Request')} Request */
 /** @typedef {import('@adonisjs/framework/src/Response')} Response */
@@ -20,8 +24,9 @@ class CoachController {
    * @param {Response} ctx.response
    * @param {View} ctx.view
    */
-  async index ({ request, response, view }) {
-    const { director_id } = request.only(['director_id']) //If this method were to get the id from auth, here it would change
+  async index ({ auth, request, response, view }) {
+    const director = await ( await auth.getUser() ).director().first()
+    const director_id = director.id
 
     try {
       //We can only show his coaches
@@ -44,29 +49,43 @@ class CoachController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async store ({ request, response }) {
-    const { name, director_id } = request.only(['name', 'director_id']) //We need to know which director created the coach
+  async store ({ auth, request, response }) {
+    const { name, email, password } = request.only(['name', 'email', 'password',])
+    const director = await ( await auth.getUser() ).director().first()
+    const director_id = director.id
+    const role_id = (await Role.findBy('name', 'Coach')).id  
 
     let coach = {}
     let message = 'The coach was created successfully'
     let status = 201
 
+    //We are gonna need a transaction
+    const trx = await Database.beginTransaction()
     try {
-      //Lets find if the director_id exists
-      const director = await Director.find(director_id)
+      //First lets create a user
+      const user = await User.create({
+        username: name,
+        email,
+        password,
+        role_id
+      }, trx)
 
-      if(director !== null){
-        coach = await Coach.create({
-          name,
-          director_id
-        })
+      //Lets create the coach for that user
+      coach = await Coach.create({
+        name,
+        director_id,
+        user_id: user.id
+      }, trx)
 
-      }else{
-        message = 'The director was not found, could not create a coach'
-        status = 404
-      }
+      coach.user = user
       
+      //Coach and User created, lets commit
+      await trx.commit()
+
     } catch (error) {
+      //Someting went wrong, rollback
+      await trx.rollback()
+
       return response.status(500).json({
         message: 'The coach could not be created',
         error
@@ -88,9 +107,10 @@ class CoachController {
    * @param {Response} ctx.response
    * @param {View} ctx.view
    */
-  async show ({ params, request, response, view }) {
-    const { director_id } = request.only(['director_id'])
+  async show ({ auth, params, request, response, view }) {
     const { id } = params
+    const director = await ( await auth.getUser() ).director().first()
+    const director_id = director.id
 
     let coach = {}
     let message = 'The coach was found successfully'
@@ -125,9 +145,11 @@ class CoachController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async update ({ params, request, response }) {
+  async update ({ auth, params, request, response }) {
     const { id } = params
-    const { name, director_id } = request.only(['name', 'director_id'])
+    const { name } = request.only(['name'])
+    const director = await ( await auth.getUser() ).director().first()
+    const director_id = director.id
 
     let coach = {}
     let message = 'The coach was updated'
@@ -166,9 +188,10 @@ class CoachController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async destroy ({ params, request, response }) {
+  async destroy ({ auth, params, request, response }) {
     const { id } = params
-    const { director_id } = request.only(['director_id'])
+    const director = await ( await auth.getUser() ).director().first()
+    const director_id = director.id
 
     let coach = {}
     let message = 'The coach was deleted'
