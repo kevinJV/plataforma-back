@@ -50,7 +50,8 @@ class UserController {
             switch (role.name) {
                 case "Director":
                     roleData = await Director.create({
-                        name: username
+                        name: username,
+                        user_id: user.id
                     }, trx)
                     break;
                 /**

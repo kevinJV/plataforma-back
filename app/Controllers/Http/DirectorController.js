@@ -19,7 +19,7 @@ class DirectorController {
    * @param {Response} ctx.response
    * @param {View} ctx.view
    */
-  async index ({ request, response, view }) {
+  async index ({ auth, request, response, view }) {
     try {
       return response.type(200).json(await Director.all())
       
@@ -35,11 +35,15 @@ class DirectorController {
    * Create/save a new director.
    * POST directors
    *
+   * ||||||||||||||||
+   * |||DEPRECATED|||
+   * ||||||||||||||||
+   * 
    * @param {object} ctx
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async store ({ request, response }) {
+  async store ({ auth, request, response }) {
     const { name } = request.only(['name'])
 
     let director = {}
@@ -71,7 +75,7 @@ class DirectorController {
    * @param {Response} ctx.response
    * @param {View} ctx.view
    */
-  async show ({ params, request, response, view }) {
+  async show ({ auth, params, request, response, view }) {
     const { id } = params
 
     let director = {}
@@ -104,11 +108,15 @@ class DirectorController {
    * Update director details.
    * PUT or PATCH directors/:id
    *
+   * ||||||||||||||||
+   * |||DEPRECATED|||
+   * ||||||||||||||||
+   * 
    * @param {object} ctx
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async update ({ params, request, response }) {
+  async update ({ auth, params, request, response }) {
     const { id } = params
     const { name } = request.only(['name'])
 
@@ -144,12 +152,16 @@ class DirectorController {
   /**
    * Delete a director with id.
    * DELETE directors/:id
+   * 
+   * ||||||||||||||||
+   * |||DEPRECATED|||
+   * ||||||||||||||||
    *
    * @param {object} ctx
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async destroy ({ params, request, response }) {
+  async destroy ({ auth, params, request, response }) {
     const { id } = params
 
     let director = {}

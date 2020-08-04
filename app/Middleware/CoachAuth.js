@@ -10,10 +10,10 @@ class CoachAuth {
    * @param {Function} next
    */
   async handle ({ auth, request, response }, next) {
-    const user = await auth.getUser();
+    const user = await auth.getUser()
     const roleName = (await user.role().first()).name
     
-    if(roleName == "Coach" || roleName == "Director"){ //Here we are suppose whatever the coach can do, so does the director
+    if(roleName == "Coach"){ 
       // call next to advance the request
       await next()
     }else{

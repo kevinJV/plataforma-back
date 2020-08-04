@@ -10,7 +10,7 @@ class DirectorAuth {
    * @param {Function} next
    */
   async handle ({ auth, request, response }, next) {
-    const user = await auth.getUser();
+    const user = await auth.getUser()
     const roleName = (await user.role().first()).name
     
     if(roleName == "Director"){

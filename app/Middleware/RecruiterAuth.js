@@ -10,10 +10,10 @@ class RecruiterAuth {
    * @param {Function} next
    */
   async handle ({ auth, request, response }, next) {
-    const user = await auth.getUser();
+    const user = await auth.getUser()
     const roleName = (await user.role().first()).name
     
-    if(roleName == "Coach" || roleName == "Director" || roleName == "Recruiter"){ //This looks rendudant but a new role could be implemented
+    if(roleName == "Recruiter"){
       // call next to advance the request
       await next()
     }else{
