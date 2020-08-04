@@ -2,6 +2,9 @@
 
 const Recruiter = use('App/Models/Recruiter')
 const Coach = use('App/Models/Coach')
+const User = use('App/Models/User')
+const Role = use('App/Models/Role')
+
 const Database = use('Database');
 
 /** @typedef {import('@adonisjs/framework/src/Request')} Request */
@@ -21,15 +24,12 @@ class RecruiterController {
    * @param {Response} ctx.response
    * @param {View} ctx.view
    */
-  async index ({ request, response, view }) {
-    const { coach_id } = request.only(['coach_id'])
+  async index ({ auth, request, response, view }) {
+    const coach = await ( await auth.getUser() ).coach().first()
 
     try {
-      //Find the coach
-      const coach = await Coach.find(coach_id) //There is findOrFail but I want a more concise message
-
       let recruiters = {}
-      //If found
+      
       if(coach !== null){
         //Get its recruiters
         recruiters = await coach.recruiters().fetch()      
@@ -54,24 +54,32 @@ class RecruiterController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async store ({ request, response }) {
-    const { name, coach_id } = request.only(['name', 'coach_id'])
+  async store ({ auth, request, response }) {
+    const { name, email, password } = request.only(['name', 'email', 'password',])
+    const coach = await ( await auth.getUser() ).coach().first()
+    const role_id = (await Role.findBy('name', 'Recruiter')).id  
 
     let recruiter = {}
 
     //Lets start a transaction since we have to create a recruiter and then make an insert in the pivot table
     const trx = await Database.beginTransaction()
     try {
-      //Find the coach
-      let coach = await Coach.find(coach_id) //There is findOrFail but I want a more concise message
-
       if(coach === null){
         throw 'The coach could not be found, transaction rolledback'
       }
 
+      //First lets create a user
+      const user = await User.create({
+        username: name,
+        email,
+        password,
+        role_id
+      }, trx)
+
       //Create the recruiter
       recruiter = await Recruiter.create({ 
-        name        
+        name,
+        user_id: user.id       
       }, trx)
 
       //Attach or create de pivot insert
@@ -105,18 +113,15 @@ class RecruiterController {
    * @param {Response} ctx.response
    * @param {View} ctx.view
    */
-  async show ({ params, request, response, view }) {
-    const { coach_id } = request.only(['coach_id'])
+  async show ({ auth, params, request, response, view }) {
     const { id } = params
+    const coach = await ( await auth.getUser() ).coach().first()
 
     let recruiter = {}
     let message = 'The recruiter was found successfully'
     let status = 200
 
     try {
-      //Lets find the coach first
-      const coach = await Coach.find(coach_id)
-
       if(coach !== null){
         //Now that we have the couch, we can search in its recruiters if the recruiter_id exists
         recruiter = await coach.recruiters().where('recruiter_id', id).first() //doesn't scape the couch scope        
@@ -152,18 +157,16 @@ class RecruiterController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async update ({ params, request, response }) {
+  async update ({ auth, params, request, response }) {
     const { id } = params
-    const { name, coach_id } = request.only(['name', 'coach_id'])
+    const { name } = request.only(['name'])
+    const coach = await ( await auth.getUser() ).coach().first()
 
     let recruiter = {}
     let message = 'The recruiter was updated'
     let status = 200
 
     try {
-      //Lets find the coach first
-      const coach = await Coach.find(coach_id)
-
       if(coach !== null){
         //Now that we have the couch, we can search in its recruiters if the recruiter_id exists
         recruiter = await coach.recruiters().where('recruiter_id', id).first()
@@ -204,18 +207,15 @@ class RecruiterController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async destroy ({ params, request, response }) {
+  async destroy ({ auth, params, request, response }) {
     const { id } = params
-    const { coach_id } = request.only(['coach_id'])
+    const coach = await ( await auth.getUser() ).coach().first()
 
     let recruiter = {}
 
     //Lets start a transaction
     const trx = await Database.beginTransaction()
     try {
-      //Lets find the coach first
-      const coach = await Coach.find(coach_id)
-
       if(coach === null){
         throw 'The coach could not be found, transaction rolledback'
       }      
