@@ -24,7 +24,7 @@ Route.group(() => {
   Route.resource('directors', 'DirectorController').except(['store', 'update', 'destroy']).apiOnly().middleware(['auth', 'director']) 
   Route.resource('coaches', 'CoachController').apiOnly().middleware(['auth', 'director']) 
   Route.resource('recruiters', 'RecruiterController').apiOnly().middleware(['auth', 'coach']) 
-  Route.resource('candidates', 'CandidateController').apiOnly() 
+  Route.resource('candidates', 'CandidateController').apiOnly().middleware(['auth', 'recruiter']) 
   Route.resource('jobs', 'JobController').apiOnly() 
 
   Route.post('permissions', 'PermissionController.store')

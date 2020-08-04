@@ -2,6 +2,10 @@
 
 const Candidate = use('App/Models/Candidate')
 const Recruiter = use('App/Models/Recruiter')
+const User = use('App/Models/User')
+const Role = use('App/Models/Role')
+
+const Database = use('Database');
 
 /** @typedef {import('@adonisjs/framework/src/Request')} Request */
 /** @typedef {import('@adonisjs/framework/src/Response')} Response */
@@ -20,12 +24,15 @@ class CandidateController {
    * @param {Response} ctx.response
    * @param {View} ctx.view
    */
-  async index ({ request, response, view }) {
-    const { recruiter_id } = request.only(['recruiter_id'])
+  async index ({ auth, request, response, view }) {
+    const recruiter = await ( await auth.getUser() ).recruiter().first()
 
     try {
-      //We can only show his candidates
-      const candidates = await Candidate.query().where('recruiter_id', recruiter_id).fetch()
+      let candidates = {}
+      
+      if(recruiter !== null){
+        candidates = await recruiter.candidates().fetch()
+      }
       return response.type(200).json(candidates)
 
     } catch (error) {
@@ -44,21 +51,19 @@ class CandidateController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async store ({ request, response }) {
-    const { name, recruiter_id } = request.only(['name', 'recruiter_id'])
+  async store ({ auth, request, response }) {
+    const { name } = request.only(['name'])
+    const recruiter = await ( await auth.getUser() ).recruiter().first()
 
     let candidate = {}
     let message = 'The candidate was created successfully'
     let status = 201
 
     try {
-      //Lets find if the recruiter_id exists
-      const recruiter = await Recruiter.find(recruiter_id)
-
       if(recruiter !== null){
         candidate = await Candidate.create({
           name,
-          recruiter_id
+          recruiter_id: recruiter.id
         })
 
       }else{
@@ -88,16 +93,16 @@ class CandidateController {
    * @param {Response} ctx.response
    * @param {View} ctx.view
    */
-  async show ({ params, request, response, view }) {
-    const { recruiter_id } = request.only(['recruiter_id'])
+  async show ({ auth, params, request, response, view }) {
     const { id } = params
+    const recruiter = await ( await auth.getUser() ).recruiter().first()
 
     let candidate = {}
     let message = 'The candidate was found successfully'
     let status = 200
 
     try {      
-      candidate = await Candidate.query().where('id', id).where('recruiter_id', recruiter_id).first()
+      candidate = await recruiter.candidates().where('id', id).first()
       
       if(candidate === null){
         message = 'The candidate was not found'
@@ -125,16 +130,17 @@ class CandidateController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async update ({ params, request, response }) {
+  async update ({ auth, params, request, response }) {
     const { id } = params
-    const { name, recruiter_id } = request.only(['name', 'recruiter_id'])
+    const { name } = request.only(['name'])
+    const recruiter = await ( await auth.getUser() ).recruiter().first()
 
     let candidate = {}
     let message = 'The candidate was updated'
     let status = 200
 
     try {
-      candidate = await Candidate.query().where('id', id).where('recruiter_id', recruiter_id).first()
+      candidate = await recruiter.candidates().where('id', id).first()
       
       if(candidate !== null){
         candidate.merge({ name }) //Here we would pass all the atributes to update/change, trying not to iterate or do a 'objetct.attribute = '...
@@ -166,16 +172,16 @@ class CandidateController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async destroy ({ params, request, response }) {
+  async destroy ({ auth, params, request, response }) {
     const { id } = params
-    const { recruiter_id } = request.only(['recruiter_id'])
+    const recruiter = await ( await auth.getUser() ).recruiter().first()
 
     let candidate = {}
     let message = 'The candidate was deleted'
     let status = 200
 
     try {
-      candidate = await Candidate.query().where('id', id).where('recruiter_id', recruiter_id).first()
+      candidate = await recruiter.candidates().where('id', id).first()
 
       if(candidate !== null){
         await candidate.delete()
