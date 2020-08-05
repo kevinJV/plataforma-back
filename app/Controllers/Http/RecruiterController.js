@@ -249,6 +249,55 @@ class RecruiterController {
       recruiter
     })
   }
+
+  /**
+   * Share a recruiter from a coach to another.
+   * POST recruiters-share
+   *
+   * @param {object} ctx
+   * @param {Request} ctx.request
+   * @param {Response} ctx.response
+   */
+  async share ({ auth, request, response }) {
+    const { recruiter_id, coach_id_to } = request.only(['recruiter_id', 'coach_id_to'])
+    const coach = await ( await auth.getUser() ).coach().first()
+
+    let recruiter = {}
+    let message = 'The recruiter was shared'
+    let status = 200
+
+    try {
+      const coach_to = await Coach.find(coach_id_to)
+      if(coach_to !== null){
+        //Now that we have the couch, we can search in its recruiters if the recruiter_id exists
+        recruiter = await coach.recruiters().where('recruiter_id', recruiter_id).first()
+  
+        if(recruiter !== null){
+          //Lets share the recruiter
+          await coach_to.recruiters().attach(recruiter.id)
+
+        }else{
+          message = 'The recruit could not be found'
+          status = 404
+        }
+
+      }else{
+        message = 'The coach you wanted to share to could not be found'
+        status = 404
+      }
+
+    } catch (error) {
+      return response.status(500).json({
+        message: 'Something went wrong when sharing a recruiter',
+        error
+      }) 
+    }
+
+    return response.status(status).json({
+      message,
+      recruiter
+    })
+  }
 }
 
 module.exports = RecruiterController

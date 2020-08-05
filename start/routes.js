@@ -33,6 +33,8 @@ Route.group(() => {
 
   Route.resource('recruiters', 'RecruiterController')
     .apiOnly().middleware(['auth', 'coach'])
+  Route.post('recruiters-share', 'RecruiterController.share')
+    .middleware(['auth', 'coach'])
 
   Route.resource('candidates', 'CandidateController')
     .apiOnly().middleware(['auth', 'recruiter']) 
