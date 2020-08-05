@@ -23,7 +23,9 @@ class UserController {
     * POST register
     */
    async register({ request, response }){
-    const { username, email, password, role_id } = request.only(['username', 'email', 'password', 'role_id'])
+    // const { username, email, password, role_id } = request.only(['username', 'email', 'password', 'role_id'])
+    const { username, email, password } = request.only(['username', 'email', 'password'])
+    const role_id = 1
 
     let user = {};
     let message = 'The register was succesfully'
