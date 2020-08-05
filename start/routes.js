@@ -21,16 +21,36 @@ Route.get('/', () => {
 })
 
 Route.group(() => { 
-  Route.resource('directors', 'DirectorController').except(['store', 'update', 'destroy']).apiOnly().middleware(['auth', 'director']) 
-  Route.resource('coaches', 'CoachController').apiOnly().middleware(['auth', 'director']) 
-  Route.resource('recruiters', 'RecruiterController').apiOnly().middleware(['auth', 'coach']) 
-  Route.resource('candidates', 'CandidateController').apiOnly().middleware(['auth', 'recruiter']) 
-  Route.resource('candidates/:candidate_id/jobs', 'JobController').apiOnly().middleware(['auth', 'recruiter'])
-  Route.resource('candidates/:candidate_id/logs', 'LogController').apiOnly().middleware(['auth', 'recruiter'])
-  Route.resource('candidates/:candidate_id/notes', 'NoteController').apiOnly().middleware(['auth', 'recruiter'])
+  Route.resource('directors', 'DirectorController').except(['store', 'update', 'destroy'])
+    .apiOnly().middleware(['auth', 'director'])
+  Route.get('directors-hierarchy', 'DirectorController.indexHierarchy')
+    .middleware(['auth', 'director'])
 
-  Route.post('permissions', 'PermissionController.store').middleware(['auth', 'coach']) 
-  Route.delete('permissions/:id', 'PermissionController.destroy').middleware(['auth', 'coach']) 
+  Route.resource('coaches', 'CoachController')
+    .apiOnly().middleware(['auth', 'director'])
+  Route.get('coach-hierarchy', 'CoachController.indexHierarchy')
+    .middleware(['auth', 'coach'])
+
+  Route.resource('recruiters', 'RecruiterController')
+    .apiOnly().middleware(['auth', 'coach'])
+
+  Route.resource('candidates', 'CandidateController')
+    .apiOnly().middleware(['auth', 'recruiter']) 
+
+  Route.resource('candidates/:candidate_id/jobs', 'JobController')
+    .apiOnly().middleware(['auth', 'recruiter'])
+
+  Route.resource('candidates/:candidate_id/logs', 'LogController')
+    .apiOnly().middleware(['auth', 'recruiter'])
+  
+  Route.resource('candidates/:candidate_id/notes', 'NoteController')
+    .apiOnly().middleware(['auth', 'recruiter'])
+
+  Route.post('permissions', 'PermissionController.store')
+    .middleware(['auth', 'coach']) 
+
+  Route.delete('permissions/:id', 'PermissionController.destroy')
+    .middleware(['auth', 'coach']) 
 
   Route.post('register', 'UserController.register')
   Route.post('login', 'UserController.login')

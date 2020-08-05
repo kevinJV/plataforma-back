@@ -220,6 +220,42 @@ class CoachController {
       coach
     })
   }
+
+  /**
+   * Show the coach hierarchy.
+   * GET coaches-hierarchy
+   *
+   * @param {object} ctx
+   * @param {Request} ctx.request
+   * @param {Response} ctx.response
+   * @param {View} ctx.view
+   */
+  async indexHierarchy ({ auth, request, response, view }) {
+    const coach = await ( await auth.getUser() ).coach().first()
+
+    let hierarchy = {}
+    let message = 'Coach hierarchy found'
+    let status = 200
+
+    try {
+      hierarchy = await Coach.query()
+      .where('id', coach.id)
+      .with('recruiters').with('recruiters.candidates')
+      .fetch()
+      
+    } catch (error) {
+      console.log(error)
+      return response.status(500).json({
+        message: 'Something went wrong when getting the hierarchy',
+        error
+      })  
+    }
+
+    return response.status(status).json({
+      message,
+      hierarchy
+    })
+  }
 }
 
 module.exports = CoachController

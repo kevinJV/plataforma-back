@@ -191,6 +191,41 @@ class DirectorController {
       director
     })
   }
+
+  /**
+   * Show the director hierarchy.
+   * GET directors-hierarchy
+   *
+   * @param {object} ctx
+   * @param {Request} ctx.request
+   * @param {Response} ctx.response
+   * @param {View} ctx.view
+   */
+  async indexHierarchy ({ auth, request, response, view }) {
+    const director = await ( await auth.getUser() ).director().first()
+
+    let hierarchy = {}
+    let message = 'Director hierarchy found'
+    let status = 200
+
+    try {
+      hierarchy = await Director.query()
+      .where('id', director.id)
+      .with('coaches').with('coaches.recruiters').with('coaches.recruiters.candidates')
+      .fetch()
+      
+    } catch (error) {
+      return response.status(500).json({
+        message: 'Something went wrong when getting all the hierarchy',
+        error
+      })  
+    }
+
+    return response.status(status).json({
+      message,
+      hierarchy
+    })
+  }
 }
 
 module.exports = DirectorController
