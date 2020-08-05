@@ -27,8 +27,8 @@ Route.group(() => {
   Route.resource('candidates', 'CandidateController').apiOnly().middleware(['auth', 'recruiter']) 
   Route.resource('candidates/:candidate_id/jobs', 'JobController').apiOnly().middleware(['auth', 'recruiter'])
 
-  Route.post('permissions', 'PermissionController.store')
-  Route.delete('permissions/:id', 'PermissionController.destroy')
+  Route.post('permissions', 'PermissionController.store').middleware(['auth', 'coach']) 
+  Route.delete('permissions/:id', 'PermissionController.destroy').middleware(['auth', 'coach']) 
 
   Route.post('register', 'UserController.register')
   Route.post('login', 'UserController.login')

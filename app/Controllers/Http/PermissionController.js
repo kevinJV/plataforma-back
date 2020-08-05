@@ -19,18 +19,17 @@ class PermissionController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async store ({ request, response }) {
-    const { coach_id, recruiter_id, recruiter_id_from, candidate_id, permission_type_id } = 
-      request.only(['coach_id', 'recruiter_id', 'recruiter_id_from', 'candidate_id', 'permission_type_id'])
+  async store ({ auth, request, response }) {
+    const { recruiter_id, recruiter_id_from, candidate_id, permission_type_id } = 
+      request.only(['recruiter_id', 'recruiter_id_from', 'candidate_id', 'permission_type_id'])
+    const coach = await ( await auth.getUser() ).coach().first()
+
 
     let permission = {}
     let message = 'Permission created'
     let status = 201
 
     try {
-      //First we need to find the coach
-      const coach = await Coach.find(coach_id)
-
       if(coach !== null){
         //We search the recruiter that is going to have the permission
         const recruiter_to = await coach.recruiters().where('recruiter_id', recruiter_id).first()      
@@ -48,7 +47,7 @@ class PermissionController {
               permission = await Permission.create({
                 recruiter_id,
                 permission_type_id,
-                coach_id,
+                coach_id: coach.id,
                 candidate_id
               })
 
@@ -73,6 +72,7 @@ class PermissionController {
       }
 
     } catch (error) {
+      console.log(error)
       return response.status(500).json({
         message: 'The permission could not be created',
         error
@@ -94,8 +94,8 @@ class PermissionController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async destroy ({ params, request, response }) {
-    const { coach_id } = request.only(['coach_id'])
+  async destroy ({ auth, params, request, response }) {
+    const coach = await ( await auth.getUser() ).coach().first()
     const { id } = params
 
     let permission = {}
@@ -104,7 +104,7 @@ class PermissionController {
 
     try {
       //First we need to see if there is a entry with the permission_id and the coach_id
-      permission = await Permission.query().where('id', id).where('coach_id', coach_id).first()
+      permission = await Permission.query().where('id', id).where('coach_id', coach.id).first()
 
       if(permission !== null){
         await permission.delete()
@@ -115,6 +115,7 @@ class PermissionController {
       }
 
     } catch (error) {
+      console.log(error)
       return response.status(500).json({
         message: 'Something went wrong when deleting a permission',
         error
