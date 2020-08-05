@@ -13,6 +13,32 @@ const PermissionType = use('App/Models/PermissionType')
  * Resourceful controller for interacting with notes
  */
 class NoteController {
+
+  /**
+   * This methods aim to allow coaches and recruiter 
+   * to use the controller in cooperation with 
+   * the middleware RecruiterAuthVariant
+   *
+   * @param {object} ctx
+   * @param {Request} ctx.request
+   */
+  async getRecruiter(request, params, auth){
+    let recruiter = {}
+    const { candidate_id } = params
+
+    //Lets check if is the coach the one working
+    if(request.middleware_coach){
+      //We know from the middleware that the coach has the recruiter
+      recruiter = await Recruiter.find(request.middleware_recruiter_id)
+    }else{
+      //Get the recruiter the normal way
+      recruiter = await ( await auth.getUser() ).recruiter().first()
+    }
+    console.log(recruiter)
+
+    return recruiter
+  }
+
   /**
    * Show a list of all notes.
    * GET candidates/:candidate_id/notes
@@ -24,7 +50,7 @@ class NoteController {
    */
   async index ({ auth, params, request, response, view }) {
     const { candidate_id } = params
-    const recruiter = await ( await auth.getUser() ).recruiter().first()
+    const recruiter = await this.getRecruiter(request, params, auth)
     const permission_type_id = (await PermissionType.findBy('table_name', 'Notes')).id
 
     try {
@@ -74,7 +100,7 @@ class NoteController {
   async store ({ auth, params, request, response }) {
     const { candidate_id } = params
     const { title, description } = request.only(['title', 'description'])
-    const recruiter = await ( await auth.getUser() ).recruiter().first()
+    const recruiter = await this.getRecruiter(request, params, auth)
     const permission_type_id = (await PermissionType.findBy('table_name', 'Notes')).id //Find the permission id
 
     let note = {}
@@ -142,7 +168,7 @@ class NoteController {
    */
   async show ({ auth, params, request, response, view }) {
     const { candidate_id, id } = params
-    const recruiter = await ( await auth.getUser() ).recruiter().first()
+    const recruiter = await this.getRecruiter(request, params, auth)
     const permission_type_id = (await PermissionType.findBy('table_name', 'Notes')).id //Find the permission id
 
     let note = {}
@@ -204,7 +230,7 @@ class NoteController {
   async update ({ auth, params, request, response }) {
     const { candidate_id, id } = params
     const { title, description } = request.only(['title', 'description'])
-    const recruiter = await ( await auth.getUser() ).recruiter().first()
+    const recruiter = await this.getRecruiter(request, params, auth)
     const permission_type_id = (await PermissionType.findBy('table_name', 'Notes')).id //Find the permission id
 
     let note = {}
@@ -270,7 +296,7 @@ class NoteController {
    */
   async destroy ({ auth, params, request, response }) {
     const { candidate_id, id } = params
-    const recruiter = await ( await auth.getUser() ).recruiter().first()
+    const recruiter = await this.getRecruiter(request, params, auth)
     const permission_type_id = (await PermissionType.findBy('table_name', 'Notes')).id //Find the permission id
 
     let note = {}

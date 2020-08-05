@@ -40,13 +40,13 @@ Route.group(() => {
     .apiOnly().middleware(['auth', 'recruiter']) 
 
   Route.resource('candidates/:candidate_id/jobs', 'JobController')
-    .apiOnly().middleware(['auth', 'recruiter'])
+    .apiOnly().middleware(['auth', 'recruiter_variant'])
 
   Route.resource('candidates/:candidate_id/logs', 'LogController')
-    .apiOnly().middleware(['auth', 'recruiter'])
+    .apiOnly().middleware(['auth', 'recruiter_variant'])
   
   Route.resource('candidates/:candidate_id/notes', 'NoteController')
-    .apiOnly().middleware(['auth', 'recruiter'])
+    .apiOnly().middleware(['auth', 'recruiter_variant'])
 
   Route.post('permissions', 'PermissionController.store')
     .middleware(['auth', 'coach']) 

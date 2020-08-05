@@ -72,7 +72,6 @@ class PermissionController {
       }
 
     } catch (error) {
-      console.log(error)
       return response.status(500).json({
         message: 'The permission could not be created',
         error
@@ -115,7 +114,6 @@ class PermissionController {
       }
 
     } catch (error) {
-      console.log(error)
       return response.status(500).json({
         message: 'Something went wrong when deleting a permission',
         error

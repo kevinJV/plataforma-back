@@ -39,7 +39,8 @@ const namedMiddleware = {
   guest: 'Adonis/Middleware/AllowGuestOnly',
   director: 'App/Middleware/DirectorAuth',
   coach: 'App/Middleware/CoachAuth',
-  recruiter: 'App/Middleware/RecruiterAuth'
+  recruiter: 'App/Middleware/RecruiterAuth',
+  recruiter_variant: 'App/Middleware/RecruiterAuthVariant'
 }
 
 /*

@@ -13,6 +13,32 @@ const PermissionType = use('App/Models/PermissionType')
  * Resourceful controller for interacting with jobs
  */
 class JobController {
+
+  /**
+   * This methods aim to allow coaches and recruiter 
+   * to use the controller in cooperation with 
+   * the middleware RecruiterAuthVariant
+   *
+   * @param {object} ctx
+   * @param {Request} ctx.request
+   */
+  async getRecruiter(request, params, auth){
+    let recruiter = {}
+    const { candidate_id } = params
+
+    //Lets check if is the coach the one working
+    if(request.middleware_coach){
+      //We know from the middleware that the coach has the recruiter
+      recruiter = await Recruiter.find(request.middleware_recruiter_id)
+    }else{
+      //Get the recruiter the normal way
+      recruiter = await ( await auth.getUser() ).recruiter().first()
+    }
+    console.log(recruiter)
+
+    return recruiter
+  }
+
   /**
    * Show a list of all jobs.
    * GET candidates/:candidate_id/jobs
@@ -24,7 +50,7 @@ class JobController {
    */
   async index ({ auth, params, request, response, view }) {
     const { candidate_id } = params
-    const recruiter = await ( await auth.getUser() ).recruiter().first()
+    const recruiter = await this.getRecruiter(request, params, auth)
     const permission_type_id = (await PermissionType.findBy('table_name', 'Jobs')).id
 
     try {
@@ -74,7 +100,7 @@ class JobController {
   async store ({ auth, params, request, response }) {
     const { candidate_id } = params
     const { title, description } = request.only(['title', 'description'])
-    const recruiter = await ( await auth.getUser() ).recruiter().first()
+    const recruiter = await this.getRecruiter(request, params, auth)
     const permission_type_id = (await PermissionType.findBy('table_name', 'Jobs')).id //Find the permission id
 
     let job = {}
@@ -142,7 +168,7 @@ class JobController {
    */
   async show ({ auth, params, request, response, view }) {
     const { candidate_id, id } = params
-    const recruiter = await ( await auth.getUser() ).recruiter().first()
+    const recruiter = await this.getRecruiter(request, params, auth)
     const permission_type_id = (await PermissionType.findBy('table_name', 'Jobs')).id //Find the permission id
 
     let job = {}
@@ -204,7 +230,7 @@ class JobController {
   async update ({ auth, params, request, response }) {
     const { candidate_id, id } = params
     const { title, description } = request.only(['title', 'description'])
-    const recruiter = await ( await auth.getUser() ).recruiter().first()
+    const recruiter = await this.getRecruiter(request, params, auth)
     const permission_type_id = (await PermissionType.findBy('table_name', 'Jobs')).id //Find the permission id
 
     let job = {}
@@ -270,7 +296,7 @@ class JobController {
    */
   async destroy ({ auth, params, request, response }) {
     const { candidate_id, id } = params
-    const recruiter = await ( await auth.getUser() ).recruiter().first()
+    const recruiter = await this.getRecruiter(request, params, auth)
     const permission_type_id = (await PermissionType.findBy('table_name', 'Jobs')).id //Find the permission id
 
     let job = {}

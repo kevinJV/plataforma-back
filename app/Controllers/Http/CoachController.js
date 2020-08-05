@@ -244,7 +244,6 @@ class CoachController {
       .fetch()
       
     } catch (error) {
-      console.log(error)
       return response.status(500).json({
         message: 'Something went wrong when getting the hierarchy',
         error
