@@ -4,6 +4,7 @@ const Candidate = use('App/Models/Candidate')
 const Recruiter = use('App/Models/Recruiter')
 const User = use('App/Models/User')
 const Role = use('App/Models/Role')
+const Permission = use('App/Models/Permission')
 
 const Database = use('Database');
 
@@ -30,8 +31,21 @@ class CandidateController {
     try {
       let candidates = {}
       
+      //First lets fetch his/hers candidates
       if(recruiter !== null){
         candidates = await recruiter.candidates().fetch()
+
+        //Now lets fetch the candidates that he has perrmissions on
+        let permission_candidates = await Database.table('permissions').select('candidates.*')
+          .where('permissions.recruiter_id', recruiter.id)
+          .innerJoin('candidates', 'permissions.candidate_id', 'candidates.id').groupBy('candidates.id')
+
+        //We push previous candidates into this new array
+        for(let index in candidates.rows){
+          permission_candidates.push(candidates.rows[index].toJSON())
+        }
+
+        candidates = permission_candidates
       }
       return response.type(200).json(candidates)
 
@@ -103,6 +117,20 @@ class CandidateController {
 
     try {      
       candidate = await recruiter.candidates().where('id', id).first()
+
+      //If the recruiter doesn't have that candidate in his list, lets see if he has the permission
+      if(candidate === null){
+        //Only works if you (RECRUITER) have the exact PERMISSION in this CANDIDATE
+        const permission = await Permission.query()
+          .where('recruiter_id', recruiter.id).where('candidate_id', id)
+          .first()
+
+        if(permission !== null){
+          //Lets give him the permission
+          candidate = await Candidate.find(id)
+          message = 'The candidate was found successfully but due to a permission'
+        }
+      }
       
       if(candidate === null){
         message = 'The candidate was not found'
