@@ -197,11 +197,22 @@ class CoachController {
     let message = 'The coach was deleted'
     let status = 200
 
+    //Lets start a transaction
+    const trx = await Database.beginTransaction()
     try {
-      coach = await Coach.query().where('id', id).where('director_id', director_id).first()
+      coach = await Coach.query().where('id', id).where('director_id', director_id).with('user').first()
 
       if(coach !== null){
-        await coach.delete()
+        //First lets destroy de coach
+        await coach.delete(trx)
+
+        //Then destroy the user
+        const user = await User.find(coach.user_id)
+
+        await user.delete(trx)
+
+        //Both have been deleten, when can commit
+        await trx.commit()
         
       }else{
         message = 'The coach you tried to delete doesn\'t exists'
@@ -209,6 +220,9 @@ class CoachController {
       }
 
     } catch (error) {
+      //Someting went wrong, rollback
+      await trx.rollback()
+
       return response.status(500).json({
         message: 'Something went wrong when deleting a coach',
         error

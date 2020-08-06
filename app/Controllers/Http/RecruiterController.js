@@ -82,6 +82,8 @@ class RecruiterController {
         user_id: user.id       
       }, trx)
 
+      recruiter.user = user
+
       //Attach or create de pivot insert
       await coach.recruiters().attach([recruiter.id], null, trx)
 
@@ -220,8 +222,8 @@ class RecruiterController {
         throw 'The coach could not be found, transaction rolledback'
       }      
 
-      //Now that we have the couch, we can search in its recruiters if the recruiter_id exists
-      recruiter = await coach.recruiters().where('recruiter_id', id).first()
+      //Lets see if that coach has the recruiter
+      recruiter = await coach.recruiters().where('recruiter_id', id).with('user').first()
 
       if(recruiter === null){
         throw 'The recruiter you tried to delete doesn\'t exists, transaction rolledback'
@@ -230,6 +232,11 @@ class RecruiterController {
       //If everything is in order, lets delete that recruiter
       await coach.recruiters().detach([recruiter.id], null, trx)
       await recruiter.delete(trx)
+
+      //Now lets destroy the user
+      const user = await User.find(recruiter.user_id)
+
+      await user.delete(trx)
 
       //Commit the transaction
       await trx.commit()
